@@ -1,0 +1,13 @@
+'use client';
+
+import Chat from './chat';
+import { useEffect } from 'react';
+import { useAuth } from '@/utils/Auth';
+
+export default function Page() {
+  return (
+    <section>
+      <Chat />
+    </section>
+  );
+}

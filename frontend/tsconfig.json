@@ -22,6 +22,19 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/dashboard/chat.jsx",
+    "src/app/dashboard/rightSide.jsx",
+    "src/app/dashboard/left-side.jsx",
+    "src/app/dashboard/components/contactCard.jsx",
+    "src/app/registration/registration.jsx",
+    "src/app/page.jsx",
+    "src/app/dashboard/page.jsx",
+    "src/app/layout.jsx"
+  ],
   "exclude": ["node_modules"]
 }
