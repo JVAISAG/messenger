@@ -50,13 +50,14 @@ export default function Login() {
         toast.success(`logged in as ${user.userName}`);
       }
 
-      // if (!isAuthed) {
-      //   throw new Error('Unauthorized aceess');
-      // }
+      if (!isAuthed) {
+        throw new Error('Unauthorized aceess');
+      }
       console.log(res);
 
       router.push('/dashboard');
     } catch (err) {
+      toast.error('Incorrect email or Password');
       console.log(err);
     }
   };

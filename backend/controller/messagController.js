@@ -111,7 +111,9 @@ exports.checkIfConvoExists = async (req, res, next) => {
 
 exports.getMessageByConversationId = async (req, res) => {
   try {
-    const message = await Message.find({ conversation: req.body.conversation });
+    const message = await Message.find({
+      conversation: req.body.conversationId,
+    });
     res.status(200).json({
       status: 'success',
       data: {

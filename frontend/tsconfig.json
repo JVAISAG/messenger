@@ -27,7 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/app/dashboard/chat.jsx",
+    "src/app/dashboard/dashboard.jsx",
     "src/app/dashboard/rightSide.jsx",
     "src/app/dashboard/left-side.jsx",
     "src/app/dashboard/components/contactCard.jsx",

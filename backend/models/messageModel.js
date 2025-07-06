@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Conversation = require('./conversationModel');
 
 const MessageSchema = mongoose.Schema(
   {
@@ -7,10 +8,15 @@ const MessageSchema = mongoose.Schema(
       required: [true, 'Content is required'],
       trim: true,
     },
+    senderId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'Sender is required'],
+    },
     conversation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Conversation',
-      required: [true, 'A conversation is is required'],
+      required: [true, 'A conversation is required'],
     },
     status: {
       delivered: {
@@ -39,6 +45,22 @@ const MessageSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Auto-populate conversation on any find
+MessageSchema.pre(/^find/, function (next) {
+  this.populate('conversation');
+  next();
+});
+
+MessageSchema.pre('save', async function (next) {
+  console.log('this is pre middleware');
+  const conversation = await Conversation.findByIdAndUpdate(this.conversation, {
+    lastMessage: this.content,
+  });
+
+  console.log(conversation);
+  next();
+});
 
 const Message = mongoose.model('Message', MessageSchema);
 

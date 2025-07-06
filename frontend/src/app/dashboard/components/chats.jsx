@@ -1,43 +1,47 @@
+import { useAuth } from '@/utils/Auth';
 import ContactCard from './contactCard';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-export default function Chats(
+export default function Chats({
   contacts,
   setSelectedConversation,
   selectConversation,
   loading,
-
-  selectedConversation
-) {
+  setReciever,
+  selectedConversation,
+}) {
+  const { user } = useAuth();
   return (
-    <div>
-      <ScrollArea>
-        <ul id="contacts-list">
-          {!loading && contacts && contacts.length > 0
-            ? contacts.map((contact, index) => {
-                console.log('Index:', contact);
-                const convo = { ...contact };
+    <div className="h-full">
+      <ScrollArea className="h-full px-3 py-2">
+        <ul id="contacts-list" className="space-y-2">
+          {contacts && contacts.length > 0
+            ? contacts.map((conversation, index) => {
+                const contactId = conversation.participants?.find(
+                  (usr) => usr !== user._id
+                );
+
                 return (
                   <li
                     key={index}
                     onClick={() => {
                       setSelectedConversation(index);
-                      selectConversation(contact, true);
+                      selectConversation(conversation, true);
                     }}
+                    className="transition hover:scale-[1.01] ease-in-out"
                   >
-                    {
-                      <ContactCard
-                        contact={convo}
-                        selected={selectedConversation === index}
-                      />
-                    }
+                    <ContactCard
+                      clickedUser={contactId}
+                      setReciever={setReciever}
+                      selected={selectedConversation === index}
+                      conversation={conversation}
+                    />
                   </li>
                 );
               })
             : null}
         </ul>
       </ScrollArea>
-      {/* <Button variant="ghost">+</Button> */}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import Chat from './chat';
+import Chat from './dashboard';
 import { useEffect } from 'react';
 import { useAuth } from '@/utils/Auth';
 

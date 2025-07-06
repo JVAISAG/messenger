@@ -3,8 +3,9 @@ const Message = require('../models/messageModel');
 const CatchAsync = require('../utils/catchAsync');
 
 exports.getAllUserConversations = CatchAsync(async (req, res) => {
+  console.log(req.body);
   const conversations = await Conversations.find({
-    participants: req.body.id,
+    participants: req.body.user,
   });
   res.status(200).json({
     status: 'success',
@@ -28,8 +29,8 @@ exports.createConversation = CatchAsync(async (req, res) => {
   const conversationExist = await Conversations.find({
     participants: { $all: [req.body.senderId, req.params.id] },
   });
-
-  if (conversationExist.length === 0) {
+  console.log(conversationExist);
+  if (conversationExist.length !== 0) {
     console.log('its here');
     return res.status(200).json({
       status: 'success',
@@ -50,7 +51,7 @@ exports.createConversation = CatchAsync(async (req, res) => {
 });
 
 exports.getMessageByConversationId = CatchAsync(async (req, res) => {
-  const message = await Message.find({ conversation: req.body.conversation });
+  const message = await Message.find({ conversation: req.params.id });
   res.status(200).json({
     status: 'success',
     data: {

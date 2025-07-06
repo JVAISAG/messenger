@@ -41,7 +41,7 @@ exports.login = CatchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   //1)Get user and match for email and pass
   const user = await User.findOne({ email }).select('+passwordHash');
-  console.log(user);
+  console.log('user: ', user);
   const passwordMatched = await user.correctPassword(
     password,
     user.passwordHash

@@ -44,7 +44,7 @@ export function AuthProvider({ children }) {
           'Content-Type': 'application/json',
         },
       });
-      console.log('this is after res');
+      // console.log('this is after res');
       setUser(res.data.data.user);
       setToken(res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.data.user));
@@ -52,6 +52,7 @@ export function AuthProvider({ children }) {
 
       return res;
     } catch (err) {
+      console.log(err);
       setError(err);
     }
   };

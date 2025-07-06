@@ -24,10 +24,27 @@ mongoose
     console.log('Database Error: ', err);
   });
 
+const users = new Map();
+
 io.on('connection', (sock) => {
-  console.log('user Connected');
+  // console.log('user Connected: ', sock.id);
+
+  //creating a room (roomId is conversation id)
+  sock.on('join-room', ({ roomId, userId }) => {
+    sock.join(roomId);
+    users.set(sock.id, userId);
+    // console.log(`${userId} joined the room ${roomId}`);
+  });
+
+  //sending messages to everyone in the room
+  sock.on('send-message', ({ roomId, message, sender }) => {
+    sock.to(roomId).emit('recieve-message', { message, sender });
+  });
+
+  //disconnecting from the room
   sock.on('disconnect', () => {
-    console.log('user disconnected');
+    // console.log('user disconnected');
+    users.delete(sock.id);
   });
 });
 const port = process.env.PORT;

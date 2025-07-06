@@ -19,7 +19,11 @@ import {
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
 
-export default function SearchTab({ userList, createConversation }) {
+export default function SearchTab({
+  userList,
+  createConversation,
+  setReciever,
+}) {
   const [selected, setSelected] = useState(false);
   const [searchResult, setSearchResult] = useState('');
   const [input, setInput] = useState('');
@@ -52,9 +56,10 @@ export default function SearchTab({ userList, createConversation }) {
                     return (
                       <CommandItem key={user._id}>
                         <Contactcard
-                          clickedUser={user}
+                          clickedUser={user._id}
                           selected={selected}
                           createConversation={createConversation}
+                          setReciever={setReciever}
                         />
                       </CommandItem>
                     );

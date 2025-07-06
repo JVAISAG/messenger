@@ -1,73 +1,41 @@
 #chat-container {
   display: flex;
   flex-direction: column;
-  flex: 1;
-}
-#chat-header {
-  display: flex;
-  position: sticky;
-  height: 60px;
-  top: 0;
-}
-
-#container {
-  display: flex;
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-}
-
-#left-side {
-  width: 400px;
-  height: auto;
-  background-color: white;
-  border: 1px solid rgb(158, 153, 153);
-}
-
-#right-side {
-  display: flex;
-  position: relative;
-  width: 100%;
   height: 100%;
-}
-
-#message-sender {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   width: 100%;
-  position: absolute;
-  bottom: 0;
-  flex: 1 1 auto;
-  gap: 20px;
+  background-color: #f9fafb;
 }
 
-#message-input {
-  width: 500px;
+#chat-header {
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 #message-box {
-  display: flex;
   flex: 1;
+  overflow-y: auto;
   background-image: url('/bg-img.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 1rem;
+  scroll-behavior: smooth;
 }
 
-#profile-name {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-left: 20px;
+#message-sender {
+  position: sticky;
+  bottom: 0;
+  background: white;
+  padding: 0.75rem;
+  border-top: 1px solid #e5e7eb;
 }
 
-#header-container {
-  display: flex;
-  height: 60px;
-  border: 1px solid rgb(158, 153, 153);
-  flex: 1 1 auto;
+#message-input {
+  width: 100%;
 }
 
-#serch-container {
-  width: 400px;
+#btn-send:hover {
+  background-color: #2563eb;
+  cursor: pointer;
 }
