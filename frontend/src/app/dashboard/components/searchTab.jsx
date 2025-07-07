@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Contactcard from './contactCard';
 import {
   Popover,
@@ -18,6 +18,9 @@ import {
   CommandShortcut,
 } from '@/components/ui/command';
 import { Button } from '@/components/ui/button';
+import axios from 'axios';
+import { useAuth } from '@/utils/Auth';
+import debounce from 'lodash.debounce';
 
 export default function SearchTab({
   userList,
@@ -25,18 +28,34 @@ export default function SearchTab({
   setReciever,
 }) {
   const [selected, setSelected] = useState(false);
-  const [searchResult, setSearchResult] = useState('');
-  const [input, setInput] = useState('');
+  const [searchResult, setSearchResult] = useState([]);
 
-  const handleSearch = async (e) => {
-    const searchRes = userList.filter((el) => el.userName.includes(e));
+  const { user, token } = useAuth();
 
-    setSearchResult(searchRes);
-  };
+  const handleSearch = useCallback(
+    debounce(async (value) => {
+      if (!value.trim()) {
+        console.log('value reset');
+        setSearchResult([]);
+        return;
+      }
 
-  const handleInput = (e) => {
-    setInput(e.target.value);
-  };
+      const res = await axios.get(
+        `http://localhost:5000/user?search=${value}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = res.data.data.searchResult;
+      setSearchResult(data);
+    }, 300),
+    [token]
+  );
+
+  console.log('search : ', searchResult);
+
   return (
     <div>
       <Command>
@@ -47,16 +66,17 @@ export default function SearchTab({
           <PopoverContent>
             <CommandInput
               placeholder="search"
-              onValueChange={(e) => handleSearch(e)}
+              onValueChange={(value) => handleSearch(value)}
             />
             <CommandEmpty>No results found</CommandEmpty>
             <CommandList>
               {searchResult && searchResult.length > 0
-                ? searchResult.map((user) => {
+                ? searchResult?.map((res) => {
+                    console.log('search down:', user);
                     return (
-                      <CommandItem key={user._id}>
+                      <CommandItem key={res._id} value={res.userName}>
                         <Contactcard
-                          clickedUser={user._id}
+                          clickedUser={res._id}
                           selected={selected}
                           createConversation={createConversation}
                           setReciever={setReciever}

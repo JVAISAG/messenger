@@ -51,3 +51,30 @@ exports.deleteUser = CatchAsync(async (req, res, next) => {
     data: null,
   });
 });
+
+exports.search = CatchAsync(async (req, res, next) => {
+  const searchResult = await User.aggregate([
+    {
+      $match: { userName: { $regex: req.query.search } },
+    },
+    {
+      $project: {
+        _v: 0,
+        passwordHash: 0,
+        passwordChangedAt: 0,
+        contacts: 0,
+        active: 0,
+      },
+    },
+    {
+      $limit: 10,
+    },
+  ]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      searchResult,
+    },
+  });
+});

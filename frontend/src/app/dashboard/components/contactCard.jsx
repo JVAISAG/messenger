@@ -55,7 +55,7 @@ export default function Card({
     >
       <div className="flex-shrink-0">
         <Avatar>
-          <AvatarImage src={otherUser.profilePic} alt="ProfileIcon.svg" />
+          <AvatarImage src={otherUser?.profilePic} alt="ProfileIcon.svg" />
           <AvatarFallback>{otherUser?.userName?.[0] || 'U'}</AvatarFallback>
         </Avatar>
       </div>

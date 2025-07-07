@@ -48,22 +48,6 @@ export default function Chat() {
     getAllUserConversations();
   }, [user, token, reciever]);
 
-  useEffect(() => {
-    const getAllUsers = async () => {
-      try {
-        if (token) {
-          const res = await axios.get('http://localhost:5000/user', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setUserList(res.data.data.users);
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    getAllUsers();
-  }, [user, token]);
-
   const selectConversation = (index, selected) => {
     setSelectedConversation(index);
     setSelected(selected);
