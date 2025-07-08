@@ -14,4 +14,6 @@ Router.route('/:id')
   .get(authController.protect, UserController.getUserById)
   .delete(authController.protect, UserController.deleteUser);
 
+Router.route('/checkauth').get(authController.checkAuth);
+
 module.exports = Router;

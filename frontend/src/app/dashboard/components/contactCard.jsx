@@ -4,6 +4,7 @@ import socket from '@/utils/socket';
 import { useAuth } from '@/utils/Auth';
 import RightSide from '../rightSide';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import api from '@/utils/axios';
 
 export default function Card({
   clickedUser,
@@ -21,14 +22,11 @@ export default function Card({
     const getUser = async () => {
       try {
         if (clickedUser) {
-          const res = await axios.get(
-            `http://localhost:5000/user/${clickedUser}`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+          const res = await api.get(`/user/${clickedUser}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
           setOtherUser(res.data.data.user);
         }
       } catch (err) {

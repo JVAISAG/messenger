@@ -5,6 +5,7 @@ import './chat.css';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../utils/Auth';
+import api from '@/utils/axios';
 
 export default function Chat() {
   const [selectedConversation, setSelectedConversation] = useState({});
@@ -32,8 +33,8 @@ export default function Chat() {
     const getAllUserConversations = async () => {
       try {
         if (user && token) {
-          const { data } = await axios.post(
-            'http://localhost:5000/conversations/userConversation',
+          const { data } = await api.post(
+            '/conversations/userConversation',
             { user: user?._id },
             { headers: { Authorization: `Bearer ${token}` } }
           );

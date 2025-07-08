@@ -5,15 +5,25 @@ const CatchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const { promisify } = require('util');
 
-const signToken = (id) => {
-  const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRY,
-  });
+const signToken = (id, tokenType) => {
+  const token = jwt.sign(
+    { id },
+    tokenType === 'access'
+      ? process.env.JWT_SECRET
+      : process.env.JWT_REFRESH_SECRET,
+    {
+      expiresIn:
+        tokenType === 'access'
+          ? process.env.JWT_EXPIRY
+          : process.env.JWT_EXPIRY_REFRESH,
+    }
+  );
   return token;
 };
 const createSendToken = (statusCode, user, res) => {
   const id = user._id.toString();
-  const token = signToken(id);
+  const accessToken = signToken(id, 'access');
+  const refreshToken = signToken(id, 'refresh');
 
   const cookieOptions = {
     expires: new Date(
@@ -23,10 +33,10 @@ const createSendToken = (statusCode, user, res) => {
     sameSite: 'none',
   };
 
-  res.cookie('jwt', token, cookieOptions);
+  res.cookie('jwt', refreshToken, cookieOptions);
   res.status(statusCode).json({
     status: 'success',
-    token,
+    accessToken,
     data: {
       user,
     },
@@ -41,17 +51,15 @@ exports.login = CatchAsync(async (req, res, next) => {
   const { email, password } = req.body;
   //1)Get user and match for email and pass
   const user = await User.findOne({ email }).select('+passwordHash');
-  console.log('user: ', user);
+
   const passwordMatched = await user.correctPassword(
     password,
     user.passwordHash
   );
-  console.log(passwordMatched);
 
   if (!user || !passwordMatched) {
     return next(new AppError('Invalid email or password', 401));
   }
-  console.log('this is here');
 
   createSendToken(200, user, res);
 });
@@ -88,15 +96,23 @@ exports.protect = CatchAsync(async (req, res, next) => {
 });
 
 exports.checkAuth = CatchAsync(async (req, res, next) => {
-  const token = req.cookie.jwt;
+  // console.log('check auth: ', req.cookies);
+  const refreshToken = req.cookies.jwt;
 
-  if (!token) {
+  if (!refreshToken) {
     return next(new AppError('invalid token please login again!', 401));
   }
 
+  const decoded = await promisify(jwt.verify)(
+    refreshToken,
+    process.env.JWT_REFRESH_SECRET
+  );
+
+  const accessToken = signToken(decoded.id, 'access');
+
   res.status(200).json({
     status: 'success',
-    message: 'user is logged in',
+    accessToken,
   });
 });
 

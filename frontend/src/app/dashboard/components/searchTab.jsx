@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { useAuth } from '@/utils/Auth';
 import debounce from 'lodash.debounce';
+import api from '@/utils/axios';
 
 export default function SearchTab({
   userList,
@@ -40,14 +41,11 @@ export default function SearchTab({
         return;
       }
 
-      const res = await axios.get(
-        `http://localhost:5000/user?search=${value}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const res = await api.get(`/user?search=${value}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       const data = res.data.data.searchResult;
       setSearchResult(data);
     }, 300),

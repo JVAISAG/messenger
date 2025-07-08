@@ -10,6 +10,7 @@ import Message from './components/messages';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/utils/Auth';
 import socket from '@/utils/socket';
+import api from '@/utils/axios';
 
 export default function RightSide({ conversation, reciever }) {
   const [message, setMessage] = useState('');
@@ -18,9 +19,7 @@ export default function RightSide({ conversation, reciever }) {
 
   const getMessages = async () => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/conversations/${conversation._id}/messages`
-      );
+      const res = await api.get(`/conversations/${conversation._id}/messages`);
       setMessages(res.data.data.message);
     } catch (err) {
       console.error(err);
@@ -68,7 +67,7 @@ export default function RightSide({ conversation, reciever }) {
     setMessage('');
 
     try {
-      await axios.post('http://localhost:5000/message', messageData, {
+      await api.post('/message', messageData, {
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,

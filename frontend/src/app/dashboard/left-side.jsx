@@ -18,6 +18,7 @@ import { useAuth } from '@/utils/Auth';
 import axios from 'axios';
 import SearchTab from './components/searchTab';
 import Chats from './components/chats';
+import api from '@/utils/axios';
 
 export default function LeftSide({
   loading,
@@ -27,7 +28,7 @@ export default function LeftSide({
   setReciever,
 }) {
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
 
   const createConversation = async (value) => {
     const data = {
@@ -35,7 +36,7 @@ export default function LeftSide({
       senderId: user._id,
     };
     try {
-      await axios.post('http://localhost:5000/conversations', data, {
+      await api.post('/conversations', data, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -100,6 +101,13 @@ export default function LeftSide({
               >
                 <IoMdHelp />
                 <span>Help</span>
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full flex items-center gap-3 justify-start"
+                onClick={logout}
+              >
+                <span>logout</span>
               </Button>
             </div>
           </PopoverContent>

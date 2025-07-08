@@ -20,6 +20,7 @@ import { redirect } from 'next/navigation';
 import { toast } from 'sonner';
 import axios, { AxiosError } from 'axios';
 import bcrypt from 'bcryptjs';
+import { useAuth } from '@/utils/Auth';
 
 export default function Registration() {
   const defaultValues = {
@@ -31,6 +32,7 @@ export default function Registration() {
     confirmPassword: '',
   };
 
+  const { setToken } = useAuth();
   const form = useForm<z.infer<typeof Schema>>({
     resolver: zodResolver(Schema),
     defaultValues: defaultValues,
@@ -104,6 +106,7 @@ export default function Registration() {
         return;
       }
       const response = await apiHandler();
+      setToken(response?.data.accessToken);
       if (response?.data.status === 'success'.toLowerCase()) {
         toast.success('Your account has been succesfully created');
       }

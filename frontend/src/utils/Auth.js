@@ -3,6 +3,8 @@
 import { useContext, createContext, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
+import api from '@/utils/axios';
+import Cookie from 'js-cookie';
 
 const AuthContext = createContext();
 
@@ -26,10 +28,14 @@ export function AuthProvider({ children }) {
 
   const checkAuth = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/checkauth', {
-        withCredentials: true,
-      });
+      const res = await api.get('/user/checkauth');
+      console.log('res:', res);
+      if (res.status === 401) {
+        return true;
+      }
+      return false;
     } catch (err) {
+      console.log(err);
       setError(err);
     }
   };
@@ -39,14 +45,14 @@ export function AuthProvider({ children }) {
       const data = { ...values };
       console.log('auth: ', data);
 
-      const res = await axios.post('http://localhost:5000/user/login', data, {
+      const res = await api.post('/user/login', data, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      // console.log('this is after res');
+      console.log(res);
       setUser(res.data.data.user);
-      setToken(res.data.token);
+      setToken(res.data.accessToken);
       localStorage.setItem('user', JSON.stringify(res.data.data.user));
       setIsAuthed(true);
 
@@ -61,6 +67,8 @@ export function AuthProvider({ children }) {
     try {
       await checkAuth();
       localStorage.removeItem('jwt');
+      localStorage.removeItem('user');
+      Cookie.remove('jwt');
       setIsAuthed(false);
       router.push('/login');
     } catch (err) {
@@ -81,6 +89,7 @@ export function AuthProvider({ children }) {
         login: login,
         logout: logout,
         error: error,
+        checkAuth,
       }}
     >
       {children}
