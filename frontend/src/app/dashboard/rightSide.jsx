@@ -7,20 +7,103 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LuSendHorizontal } from 'react-icons/lu';
 import Message from './components/messages';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/utils/Auth';
 import socket from '@/utils/socket';
 import api from '@/utils/axios';
+import {
+  decryptMessage,
+  decryptWithPassword,
+  EncryptMessage,
+} from '@/utils/encryption';
 
 export default function RightSide({ conversation, reciever }) {
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState([]);
+
+  const messageRef = useRef(null);
+
   const { user, token } = useAuth();
+
+  useEffect(() => {
+    messageRef?.current.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const getMessages = async () => {
     try {
-      const res = await api.get(`/conversations/${conversation._id}/messages`);
-      setMessages(res.data.data.message);
+      const messageResponse = await api.get(
+        `/conversations/${conversation._id}/messages`
+      );
+      const data = messageResponse.data.data.message;
+
+      const dataForSender = data.filter(
+        (el) => el.forSender === true && el.senderId === user._id
+      );
+      const dataForRecipient = data.filter((el) => el.forSender === false);
+
+      const response = await api.get(`message/publickey/${user._id}`);
+      const recieverPublicKeyRes = await api.get(
+        `message/publickey/${reciever._id}`
+      );
+
+      const recieverPublicKey = recieverPublicKeyRes.data.key.myPublicKey;
+
+      const senderPublicKey = response.data.key.myPublicKey;
+
+      const privateKeyResponse = await api.get(`message/privatekey`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const myPrivateKey = privateKeyResponse.data.key.privateKey;
+      const pKey = decryptWithPassword(myPrivateKey, 'Vaisag@2004');
+      const privateKey = decryptWithPassword(myPrivateKey, 'Vaisag@2004');
+
+      const decryptedAll = await Promise.all([
+        ...dataForRecipient.map(async (el) => {
+          const message = { ...el };
+          const decrypted = decryptMessage({
+            message: el.content.encryptedMessage,
+            senderPublicKey: recieverPublicKey,
+            reciverPrivateKey: pKey,
+            nonce: el.content.nonce,
+          });
+
+          return { ...message, decryptedMessage: decrypted };
+        }),
+        ...dataForSender.map(async (el) => {
+          const message = { ...el };
+          const decrypted = decryptMessage({
+            message: el.content.encryptedMessage,
+            senderPublicKey: senderPublicKey,
+            reciverPrivateKey: privateKey,
+            nonce: el.content.nonce,
+          });
+
+          return { ...message, decryptedMessage: decrypted };
+        }),
+      ]);
+
+      const uniqueMessages = decryptedAll
+        .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+        .filter((message, index, arr) => {
+          // Find the first occurrence of this message content + sender combination
+          const firstIndex = arr.findIndex(
+            (m) =>
+              m.senderId === message.senderId &&
+              m.decryptedMessage.trim() === message.decryptedMessage.trim() &&
+              Math.abs(
+                new Date(m.createdAt).getTime() -
+                  new Date(message.createdAt).getTime()
+              ) < 1000 // Within 1 seconds
+          );
+
+          // Keep only if this is the first occurrence
+          return firstIndex === index;
+        });
+
+      setMessages(uniqueMessages);
     } catch (err) {
       console.error(err);
     }
@@ -43,9 +126,34 @@ export default function RightSide({ conversation, reciever }) {
 
     socket.emit('join-room', { roomId: conversation._id, userId: user._id });
 
-    socket.on('recieve-message', (data) => {
-      console.log('message: ', data);
-      setMessages((prev) => [...prev, data.message]);
+    socket.on('recieve-message', async (data) => {
+      console.log('current: ', data);
+      const message = data.message.content.encryptedMessage;
+      const nonce = data.message.content.nonce;
+
+      const response = await api.get(`message/publickey/${data.sender}`);
+      const senderPublicKey = response.data.key.myPublicKey;
+
+      const res = await api.get(`message/privatekey`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const myPrivateKey = res.data.key.privateKey;
+      const pKey = decryptWithPassword(myPrivateKey, 'Vaisag@2004');
+
+      const decryptedMessage = decryptMessage({
+        message,
+        senderPublicKey,
+        reciverPrivateKey: pKey,
+        nonce,
+      });
+
+      const currentMessage = { ...data.message };
+      currentMessage['decryptedMessage'] = decryptedMessage;
+
+      setMessages((prev) => [...prev, currentMessage]);
     });
 
     return () => {
@@ -57,13 +165,51 @@ export default function RightSide({ conversation, reciever }) {
     e.preventDefault();
     if (!message.trim()) return;
 
+    const messageDateForSender = { ...messageData };
+
+    const response = await api.get(
+      `message/publickey/${messageData.recieverId}`
+    );
+
+    const recieverPublicKey = response.data.key.myPublicKey;
+
+    const res = await api.get(`message/privatekey`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const privateKey = res.data.key.privateKey;
+
+    const publicKeyPromise = await api.get(`message/publickey/${user._id}`);
+    const senderPublicKey = publicKeyPromise.data.key.myPublicKey;
+
+    const pKey = decryptWithPassword(privateKey, 'Vaisag@2004');
+
+    const encryptedMessageForRecipient = EncryptMessage({
+      message: message,
+      recipientPublicKey: recieverPublicKey,
+      senderPrivateKey: pKey,
+    });
+
+    const encryptedMessageForSender = EncryptMessage({
+      message: message,
+      recipientPublicKey: senderPublicKey,
+      senderPrivateKey: pKey,
+    });
+
+    const currentMessageData = { ...messageData };
+    currentMessageData['decryptedMessage'] = message;
+    currentMessageData['createdAt'] = Date.now();
+    messageData['content'] = encryptedMessageForRecipient;
+
     socket.emit('send-message', {
       roomId: conversation._id,
       message: messageData,
       sender: user._id,
     });
 
-    setMessages((prev) => [...prev, messageData]);
+    setMessages((prev) => [...prev, currentMessageData]);
     setMessage('');
 
     try {
@@ -75,6 +221,19 @@ export default function RightSide({ conversation, reciever }) {
       });
     } catch (err) {
       console.error(err);
+    }
+
+    messageDateForSender['content'] = encryptedMessageForSender;
+    messageDateForSender['forSender'] = true;
+    try {
+      await api.post('/message', messageDateForSender, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+    } catch (err) {
+      console.log('message error:', err);
     }
   };
 
@@ -94,10 +253,12 @@ export default function RightSide({ conversation, reciever }) {
         />
         <div className="flex flex-col">
           <p className="font-semibold text-gray-800">
-            {reciever ? reciever.userName : 'Loading...'}
+            {reciever ? reciever.userName : 'user'}
           </p>
           <p className="text-sm text-gray-500">
-            {user ? `last seen ${new Date().toLocaleTimeString()}` : '...'}
+            {user
+              ? `last seen ${new Date(reciever?.lastSeen).toLocaleDateString() || 'undefined'}`
+              : '...'}
           </p>
         </div>
       </header>
@@ -115,6 +276,7 @@ export default function RightSide({ conversation, reciever }) {
           </p>
         )}
       </div>
+      <div ref={messageRef} />
 
       {/* Input */}
       <form

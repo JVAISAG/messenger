@@ -16,9 +16,8 @@ export default function Card({
   const { user, token } = useAuth();
   const [otherUser, setOtherUser] = useState();
   // console.log(setReciever);
-  // console.log(conversation);
+
   useEffect(() => {
-    console.log('hello');
     const getUser = async () => {
       try {
         if (clickedUser) {
@@ -27,20 +26,23 @@ export default function Card({
               Authorization: `Bearer ${token}`,
             },
           });
+
           setOtherUser(res.data.data.user);
         }
       } catch (err) {
-        console.log(err);
+        console.log('Error: ', err);
       }
     };
     getUser();
   }, [clickedUser]);
 
   const handleClick = () => {
+    // console.log('clicked');
     if (createConversation) {
-      console.log('conversation create');
+      // console.log('conversation create');
       createConversation(clickedUser);
     }
+    socket.emit('public-key', { publicKey: user.publicKey });
     setReciever(otherUser);
   };
 
@@ -65,7 +67,7 @@ export default function Card({
               selected ? 'text-blue-800' : 'text-gray-900'
             }`}
           >
-            {otherUser?.userName}
+            {otherUser?.userName || 'user'}
           </p>
           <span
             className={`text-xs whitespace-nowrap ${

@@ -5,6 +5,10 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import api from '@/utils/axios';
 import Cookie from 'js-cookie';
+import socket from './socket';
+import { getPrivateKey } from '@/utils/db';
+import { decryptWithPassword } from '@/utils/encryption';
+// import api from '@/utils/axios';
 
 const AuthContext = createContext();
 
@@ -13,6 +17,8 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState({});
   const [isAuthed, setIsAuthed] = useState(false);
   const [user, setUser] = useState({});
+  // const [privateKey, setPrivateKey] = useState('');
+  const [keys, setKeys] = useState('');
 
   const router = useRouter();
 
@@ -26,6 +32,26 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const signUp = async (userData) => {
+    try {
+      const res = await axios.post(
+        'http://localhost:5000/user/signup',
+        userData,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        }
+      );
+      console.log(res);
+      localStorage.setItem('user', JSON.stringify(res.data.data.user));
+      return res;
+    } catch (err) {
+      console.log(err);
+      return err;
+    }
+  };
   const checkAuth = async () => {
     try {
       const res = await api.get('/user/checkauth');
@@ -43,16 +69,24 @@ export function AuthProvider({ children }) {
   const login = async (values) => {
     try {
       const data = { ...values };
-      console.log('auth: ', data);
 
       const res = await api.post('/user/login', data, {
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      console.log(res);
+
+      const currentUser = res.data.data.user;
+      // socket.emit('login-public-key', { encodedPublicKey });
+
       setUser(res.data.data.user);
       setToken(res.data.accessToken);
+
+      const response = await api.get(`message/publickey/${currentUser._id}`);
+      const key = response.data.key;
+      setKeys(key);
+      // console.log('keys:', key);
+
       localStorage.setItem('user', JSON.stringify(res.data.data.user));
       setIsAuthed(true);
 
@@ -66,10 +100,13 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       await checkAuth();
+
       localStorage.removeItem('jwt');
       localStorage.removeItem('user');
+
       Cookie.remove('jwt');
       setIsAuthed(false);
+
       router.push('/login');
     } catch (err) {
       setIsAuthed(false);
@@ -90,6 +127,7 @@ export function AuthProvider({ children }) {
         logout: logout,
         error: error,
         checkAuth,
+        signUp,
       }}
     >
       {children}

@@ -4,10 +4,21 @@ const Conversation = require('./conversationModel');
 const MessageSchema = mongoose.Schema(
   {
     content: {
-      type: String,
-      required: [true, 'Content is required'],
-      trim: true,
+      encryptedMessage: {
+        type: String,
+        required: [true, 'message is required'],
+        trim: true,
+      },
+      nonce: {
+        type: String,
+        required: [true, 'nonce is required'],
+        trim: true,
+      },
     },
+    // nonce: {
+    //   type: String,
+    //   required: true,
+    // },
     senderId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -42,6 +53,15 @@ const MessageSchema = mongoose.Schema(
         location: String,
       },
     ],
+    forSender: {
+      type: Boolean,
+      default: false,
+    },
+    recieverId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'reciever id is required'],
+    },
   },
   { timestamps: true }
 );
@@ -53,12 +73,9 @@ MessageSchema.pre(/^find/, function (next) {
 });
 
 MessageSchema.pre('save', async function (next) {
-  console.log('this is pre middleware');
   const conversation = await Conversation.findByIdAndUpdate(this.conversation, {
     lastMessage: this.content,
   });
-
-  console.log(conversation);
   next();
 });
 

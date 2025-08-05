@@ -25,6 +25,7 @@ mongoose
   });
 
 const users = new Map();
+const publicKeys = new Map();
 
 io.on('connection', (sock) => {
   // console.log('user Connected: ', sock.id);
@@ -34,6 +35,10 @@ io.on('connection', (sock) => {
     sock.join(roomId);
     users.set(sock.id, userId);
     // console.log(`${userId} joined the room ${roomId}`);
+    sock.on('public-key', ({ publicKey }) => {
+      console.log('data: ', publicKey);
+      // publicKeys.set(userId, data);
+    });
   });
 
   //sending messages to everyone in the room

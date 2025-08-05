@@ -9,8 +9,10 @@ export default function Chats({
   loading,
   setReciever,
   selectedConversation,
+  createConversation,
 }) {
   const { user } = useAuth();
+
   return (
     <div className="h-full">
       <ScrollArea className="h-full px-3 py-2">
@@ -34,6 +36,7 @@ export default function Chats({
                       clickedUser={contactId}
                       setReciever={setReciever}
                       selected={selectedConversation === index}
+                      createConversation={createConversation}
                       conversation={conversation}
                     />
                   </li>

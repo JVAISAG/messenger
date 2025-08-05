@@ -1,8 +1,10 @@
+const { Types } = require('mongoose');
 const Message = require('../models/messageModel');
 const Conversations = require('../models/conversationModel');
 const CatchAsync = require('../utils/catchAsync');
 const socket = require('../utils/socketRoom');
 const User = require('../models/userModel');
+const Key = require('../models/keys');
 const AppError = require('../utils/appError');
 const createRoom = require('../utils/socketRoom');
 
@@ -138,5 +140,29 @@ exports.sendMessage = CatchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: 'ack',
+  });
+});
+
+exports.getPublicKey = CatchAsync(async (req, res, next) => {
+  // console.log(req.params.userId);
+  const key = await Key.findOne({
+    userId: new Types.ObjectId(req.params.userId),
+  }).select('-privateKey -userId -_id -__v');
+  // console.log('public key:', key);
+  res.status(200).json({
+    status: 'success',
+    key,
+  });
+});
+
+exports.getPrivateKey = CatchAsync(async (req, res, next) => {
+  // console.log(req.params.userId);
+  const key = await Key.findOne({
+    userId: new Types.ObjectId(req.user._id),
+  }).select('-myPublicKey -userId -__v');
+  // console.log('public key:', key);
+  res.status(200).json({
+    status: 'success',
+    key,
   });
 });

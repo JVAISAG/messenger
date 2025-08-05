@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const CatchAsync = require('../utils/catchAsync');
+const Key = require('./keys');
 
 const UserSchema = mongoose.Schema(
   {
@@ -51,12 +52,22 @@ const UserSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    keys: {
+      type: mongoose.Schema.ObjectId,
+      ref: 'key',
+      // required: true,
+    },
   },
 
   {
     timestamps: true,
   }
 );
+
+UserSchema.pre(/^find/, function (next) {
+  this.populate('keys');
+  next();
+});
 
 UserSchema.methods.correctPassword = async function (
   candidatePassword,

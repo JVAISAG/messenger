@@ -27,7 +27,7 @@ import { useAuth } from '../../utils/Auth';
 
 export default function Login() {
   const router = useRouter();
-  const { error, login, user } = useAuth();
+  const { login } = useAuth();
   const defaultValues = {
     email: '',
     password: '',
@@ -48,13 +48,15 @@ export default function Login() {
 
       console.log(res);
 
-      if (!res || res.status === 401) {
+      if (res.status === 401) {
         toast.error('Incorrect Email or Password');
         return;
       }
 
-      toast.success(`logged in as ${user.userName}`);
-      router.push('/dashboard');
+      if (res.status === 200) {
+        toast.success(`logged in as ${res.data.data.user.userName}`);
+        router.push('/dashboard');
+      }
     } catch (err) {
       console.log(err);
       toast.error('Something went wrong');

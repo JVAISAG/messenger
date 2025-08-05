@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { IoMdMenu, IoMdHelp } from 'react-icons/io';
+import { MdOutlineModeEdit } from 'react-icons/md';
 import {
   MdOutlineBookmarkAdded,
   MdOutlineContacts,
@@ -63,7 +64,11 @@ export default function LeftSide({
                 className="w-full flex items-center gap-3 justify-start"
               >
                 <Avatar>
-                  <AvatarImage src={user.profilePic} alt="ProfileIcon.svg" />
+                  <AvatarImage
+                    src={user.profilePic}
+                    alt="ProfileIcon.svg"
+                    sizes="large"
+                  />
                   <AvatarFallback>{user?.userName?.[0] || 'U'}</AvatarFallback>
                 </Avatar>
                 <span className="font-semibold">
@@ -78,20 +83,6 @@ export default function LeftSide({
                 variant="ghost"
                 className="w-full flex items-center gap-3 justify-start"
               >
-                <MdOutlineBookmarkAdded />
-                <span>Saved Messages</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full flex items-center gap-3 justify-start"
-              >
-                <MdOutlineContacts />
-                <span>Contacts</span>
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full flex items-center gap-3 justify-start"
-              >
                 <MdOutlineSettings />
                 <span>Settings</span>
               </Button>
@@ -99,8 +90,8 @@ export default function LeftSide({
                 variant="ghost"
                 className="w-full flex items-center gap-3 justify-start"
               >
-                <IoMdHelp />
-                <span>Help</span>
+                <MdOutlineModeEdit />
+                <span>Edit Profile</span>
               </Button>
               <Button
                 variant="ghost"
@@ -129,6 +120,7 @@ export default function LeftSide({
           selectConversation={selectConversation}
           loading={loading}
           selectedConversation={selectedConversation}
+          createConversation={createConversation}
         />
       </div>
     </div>

@@ -52,8 +52,6 @@ export default function SearchTab({
     [token]
   );
 
-  console.log('search : ', searchResult);
-
   return (
     <div>
       <Command>

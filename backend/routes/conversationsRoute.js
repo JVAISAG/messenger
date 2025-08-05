@@ -9,7 +9,7 @@ Router.route('/').post(
   conversationsController.createConversation
 );
 
-Router.route('/userConversation').post(
+Router.route('/userConversation').get(
   authController.protect,
   conversationsController.getAllUserConversations
 );

@@ -7,7 +7,7 @@ const createRoom = (userId, conversationId) => {
       socket.join(userId);
     });
 
-    socket.on('sendMessage', async ({ toUserId, message }) => {
+    socket.on('send-message', async ({ toUserId, message }) => {
       console.log('message: ', message);
       try {
         await Message.create({
@@ -15,7 +15,7 @@ const createRoom = (userId, conversationId) => {
           conversation: conversationId,
         });
 
-        io.to(toUserId).emit('recieveMessage', {
+        io.to(toUserId).emit('recieve-message', {
           message,
           from: socket.id,
         });

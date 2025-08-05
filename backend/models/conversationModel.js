@@ -30,6 +30,8 @@ const ConversationSchema = mongoose.Schema(
   }
 );
 
+ConversationSchema.index({ participants: 1 }, { unique: true });
+
 const Conversation = mongoose.model('Conversation', ConversationSchema);
 
 module.exports = Conversation;

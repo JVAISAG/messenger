@@ -1,6 +1,6 @@
 'use client';
 
-import { boolean, z } from 'zod';
+import { boolean, string, z } from 'zod';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useForm } from 'react-hook-form';
@@ -21,8 +21,14 @@ import { toast } from 'sonner';
 import axios, { AxiosError } from 'axios';
 import bcrypt from 'bcryptjs';
 import { useAuth } from '@/utils/Auth';
+import { GenerateKeys, encryptWithPassword } from '@/utils/encryption';
+import naclUtil from 'tweetnacl-util';
+import { useRouter } from 'next/navigation';
+import { storePrivateKeys } from '@/utils/db';
 
 export default function Registration() {
+  const router = useRouter();
+
   const defaultValues = {
     firstname: '',
     lastname: '',
@@ -32,7 +38,7 @@ export default function Registration() {
     confirmPassword: '',
   };
 
-  const { setToken } = useAuth();
+  const { setToken, signUp } = useAuth();
   const form = useForm<z.infer<typeof Schema>>({
     resolver: zodResolver(Schema),
     defaultValues: defaultValues,
@@ -46,7 +52,15 @@ export default function Registration() {
   };
 
   const getUserData = async () => {
-    const userData = {
+    type User = {
+      firstName: string;
+      lastName: string;
+      userName: string;
+      email: string;
+      passwordHash: string;
+      [key: string]: any;
+    };
+    let userData: User = {
       firstName: form.getValues().firstname,
       lastName: form.getValues().lastname,
       userName: form.getValues().username,
@@ -66,36 +80,21 @@ export default function Registration() {
 
     return false;
   };
-
-  const apiHandler = async () => {
-    try {
-      const userData = await getUserData();
-      console.log('user data: ', userData);
-
-      const res = await axios.post(
-        'http://localhost:5000/user/signup',
-        userData,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          withCredentials: true,
-        }
-      );
-      console.log(res);
-      return res;
-    } catch (err: any) {
-      if (err.response.data.message === 11000) {
-        toast.error('Username already exists');
-      }
-      // console.log('err: ', err);
-    }
-  };
-
   const submitHandler = async (values: z.infer<typeof Schema>) => {
     try {
+      console.log('signup');
       const password = form.getValues().password;
+      const userData = await getUserData();
       const confirmedPassword = form.getValues().confirmPassword;
+
+      const keys = GenerateKeys();
+
+      userData['encryptionKeys'] = keys;
+      // const encryptedKey = encryptWithPassword(myPrivateKey, 'Vaisag@2004');
+      // await storePrivateKeys(encryptedKey, values.username);
+
+      console.log(userData);
+
       if (!confirmPassword(password, confirmedPassword)) {
         toast.error('Passwords do not match');
         return;
@@ -105,10 +104,11 @@ export default function Registration() {
         toast.error('Password is not strong');
         return;
       }
-      const response = await apiHandler();
-      setToken(response?.data.accessToken);
-      if (response?.data.status === 'success'.toLowerCase()) {
+      const response = await signUp(userData);
+      setToken(response?.data?.accessToken);
+      if (response?.data?.status === 'success'.toLowerCase()) {
         toast.success('Your account has been succesfully created');
+        router.push('/login');
       }
 
       // console.log('res: ', response);

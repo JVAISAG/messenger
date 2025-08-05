@@ -4,6 +4,7 @@ export default function Message({ message }) {
   const { user } = useAuth();
   const isMe = message?.senderId === user._id;
 
+  // console.log('message:', message);
   return (
     <div
       className={`flex w-full mb-2 px-2 ${isMe ? 'justify-end' : 'justify-start'}`}
@@ -16,7 +17,13 @@ export default function Message({ message }) {
               : 'bg-gray-100 text-gray-900 rounded-bl-md'
           }`}
       >
-        <p>{message?.content}</p>
+        <p>{message?.decryptedMessage}</p>
+        <p className="text-xs text-gray-400 mt-1 text-right">
+          {new Date(message?.createdAt).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+          })}
+        </p>
       </div>
     </div>
   );

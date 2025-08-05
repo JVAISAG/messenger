@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const Key = require('../models/keys');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const CatchAsync = require('../utils/catchAsync');
@@ -27,7 +28,8 @@ const createSendToken = (statusCode, user, res) => {
 
   const cookieOptions = {
     expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+      Date.now() +
+        parseInt(process.env.JWT_COOKIE_EXPIRES_IN, 10) * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
     sameSite: 'none',
@@ -43,7 +45,15 @@ const createSendToken = (statusCode, user, res) => {
   });
 };
 exports.signup = CatchAsync(async (req, res, next) => {
+  // console.log(req.body.encryptionKeys.privateKey);
+
   const user = await User.create(req.body);
+
+  const key = await Key.create({
+    userId: user._id,
+    myPublicKey: req.body.encryptionKeys.myPublicKey,
+    privateKey: req.body.encryptionKeys.privateKey,
+  });
   createSendToken(201, user, res);
 });
 
@@ -73,6 +83,7 @@ exports.protect = CatchAsync(async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
 
+  // console.log(req.headers.authorization);
   if (!token) {
     return next(new AppError('You are not logged in', 401));
   }

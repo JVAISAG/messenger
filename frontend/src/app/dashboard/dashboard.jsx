@@ -33,11 +33,10 @@ export default function Chat() {
     const getAllUserConversations = async () => {
       try {
         if (user && token) {
-          const { data } = await api.post(
-            '/conversations/userConversation',
-            { user: user?._id },
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
+          const { data } = await api.get('/conversations/userConversation', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          // console.log(data.data.conversations);
           setConversations(data.data.conversations);
         }
       } catch (err) {
@@ -66,8 +65,11 @@ export default function Chat() {
         />
       </div>
       <div className="flex-1">
-        {selected && reciever && (
-          <RightSide conversation={selectedConversation} reciever={reciever} />
+        {selected && (
+          <RightSide
+            conversation={selectedConversation}
+            reciever={reciever && reciever}
+          />
         )}
       </div>
     </div>
